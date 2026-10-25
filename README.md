@@ -21,6 +21,7 @@ aster-mcp/
 │       └── tools/                     # 六组工具 + toolbox_catalog 元工具
 ├── docs/
 │   ├── 2026-10-26-aster-agent-mcp-design.md   # 设计文档（决策与边界）
+│   ├── TEST-REPORT-2026-10-26.md              # 测试报告（四层验证 + 缺陷修复记录）
 │   └── ACCEPTANCE.md                          # 验收手册
 ├── scripts/
 │   ├── build.sh                  # 构建（含单测）
