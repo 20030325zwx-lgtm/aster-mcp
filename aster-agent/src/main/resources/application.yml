@@ -1,0 +1,96 @@
+spring:
+  application:
+    name: aster-agent
+  profiles:
+    # SSE 模式（默认，HTTP :8124）。stdio 模式见 scripts/smoke-test.sh：
+    # -Dspring.ai.mcp.server.stdio=true -Dspring.main.web-application-type=none
+    active: sse
+  ai:
+    mcp:
+      server:
+        name: aster-agent
+        version: 0.0.1
+        type: SYNC
+        sse-endpoint: /sse
+        sse-message-endpoint: /sse/message
+        # 工具变更通知（客户端可感知目录变化）
+        notify-change: true
+
+server:
+  port: 8124
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+aster:
+  output:
+    # 单个工具返回的最大字符数（超出截断并附加提示）
+    max-chars: 24000
+  audit:
+    enabled: true
+    log-file: logs/audit.jsonl
+  security:
+    # SSRF 防护：web/browser/docs 组默认拒绝私网与环回地址
+    allow-private-endpoints: ${ASTER_ALLOW_PRIVATE:false}
+    allow-hosts: ${ASTER_URL_ALLOW_HOSTS:}
+  tools:
+    web:
+      enabled: true
+      # searchapi（主项目同款，engine 可选 baidu/google 等）或 tavily；两者都需要 key
+      provider: ${SEARCH_API_PROVIDER:searchapi}
+      api-key: ${SEARCH_API_API_KEY:}
+      engine: ${ASTER_WEB_SEARCH_ENGINE:baidu}
+      # 无 key 时的免钥兜底：duckduckgo-lite（国内网络可能不可达，失败时给出清晰指引）
+      keyless-fallback: true
+      timeout-ms: 15000
+      max-results: 8
+    docs:
+      enabled: true
+      context7-base-url: https://context7.com
+      # 降级用：context7 不可达时按内置注册表 + web_fetch 抓官方文档
+      fallback-to-fetch: true
+      timeout-ms: 15000
+      max-tokens: 5000
+    db:
+      enabled: true
+      # 未配置 url 时本组工具返回清晰指引（不失败启动）
+      url: ${ASTER_DB_URL:}
+      username: ${ASTER_DB_USER:}
+      password: ${ASTER_DB_PASSWORD:}
+      max-rows: 200
+      timeout-seconds: 20
+    fs:
+      enabled: true
+      root: ${ASTER_FS_ROOT:./sandbox}
+      # 默认只读；true 后 fs_write 可用（仍限制在沙箱根内）
+      allow-write: ${ASTER_FS_ALLOW_WRITE:false}
+      max-read-bytes: 524288
+      max-write-bytes: 262144
+      max-entries: 500
+    github:
+      enabled: true
+      # 无 token 可用（匿名限流 60 次/小时），配 GITHUB_TOKEN 提至 5000 次/小时
+      token: ${GITHUB_TOKEN:}
+      timeout-ms: 15000
+      per-page: 10
+    browser:
+      enabled: true
+      # 留空则按 CHROME_PATH → Google Chrome → Chromium → Edge 顺序探测
+      chrome-path: ${CHROME_PATH:}
+      headless: true
+      timeout-ms: 20000
+      screenshot-dir: sandbox/screenshots
+    kb:
+      # 业务契合：直接调用 yu-ai-agent 知识库 API（kb 组访问的是显式配置的内网地址，不走 UrlGuard）
+      enabled: true
+      base-url: ${ASTER_AGENT_BASE_URL:http://127.0.0.1:8123/api}
+      token: ${ASTER_AGENT_TOKEN:}
+      agent-key: ${ASTER_AGENT_KEY:test}
+      timeout-ms: 15000
+
+logging:
+  level:
+    com.zwx.asteragent: INFO

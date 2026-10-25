@@ -1,0 +1,34 @@
+# aster-agent MCP 工具箱：容器编排
+# 用法：cd aster-agent && ../scripts/build.sh && cd .. && docker compose up -d
+services:
+  aster-agent-mcp:
+    build:
+      context: ./aster-agent
+      dockerfile: Dockerfile
+    image: aster-agent-mcp:0.0.1
+    container_name: aster-agent-mcp
+    ports:
+      - "8124:8124"
+    environment:
+      # 按需注入（与本机部署同一套环境变量）
+      SEARCH_API_PROVIDER: ${SEARCH_API_PROVIDER:-searchapi}
+      SEARCH_API_API_KEY: ${SEARCH_API_API_KEY:-}
+      ASTER_WEB_SEARCH_ENGINE: ${ASTER_WEB_SEARCH_ENGINE:-baidu}
+      ASTER_DB_URL: ${ASTER_DB_URL:-}
+      ASTER_DB_USER: ${ASTER_DB_USER:-}
+      ASTER_DB_PASSWORD: ${ASTER_DB_PASSWORD:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      ASTER_AGENT_BASE_URL: ${ASTER_AGENT_BASE_URL:-http://host.docker.internal:8123/api}
+      ASTER_AGENT_TOKEN: ${ASTER_AGENT_TOKEN:-}
+      ASTER_AGENT_KEY: ${ASTER_AGENT_KEY:-test}
+      ASTER_FS_ALLOW_WRITE: ${ASTER_FS_ALLOW_WRITE:-false}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - aster-sandbox:/app/sandbox
+      - aster-logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  aster-sandbox:
+  aster-logs:

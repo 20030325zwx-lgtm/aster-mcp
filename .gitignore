@@ -1,0 +1,7 @@
+target/
+sandbox/
+logs/
+*.log
+.DS_Store
+*.iml
+.idea/
